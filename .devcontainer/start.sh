@@ -2,6 +2,7 @@
 set -euo pipefail
 
 export PATH="$HOME/.bun/bin:$PATH"
+export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 cd "$(dirname "$0")/.."
 
