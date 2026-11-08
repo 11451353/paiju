@@ -1,0 +1,1743 @@
+/* 牌桌与对局界面。使用 px 尺寸，不跟随字体缩放，避免布局被撑坏。 */
+
+.table {
+  position: fixed;
+  inset: 0;
+  background: #ffffff;
+  color: #16181c;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  font-size: 12px;
+}
+
+/* ---------------- 区域 ---------------- */
+
+.zone {
+  position: absolute;
+  display: flex;
+  z-index: 3;
+}
+
+.zone--top {
+  top: 0;
+  left: 0;
+  right: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0 0;
+}
+
+.zone--bottom {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px 10px;
+}
+
+.zone--left,
+.zone--right {
+  top: 12%;
+  bottom: 32%;
+  width: 23%;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px;
+}
+
+.zone--left {
+  left: 0;
+  flex-direction: row;
+}
+
+.zone--right {
+  right: 0;
+  flex-direction: row-reverse;
+}
+
+.table--p3 .zone--left,
+.table--p3 .zone--right {
+  /* 给左上 / 右上的玩家标牌留出位置 */
+  top: 42px;
+}
+
+/* ---------------- 玩家标牌 ---------------- */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 42%;
+  padding: 2px 9px 2px 2px;
+  border-radius: 999px;
+  border: 1px solid #dfe2e7;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.badge__avatar {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  line-height: 1;
+  background: #f1f3f6;
+}
+
+.badge__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #16181c;
+}
+
+.badge--left {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  z-index: 5;
+}
+
+.badge--right {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  z-index: 5;
+}
+
+.badge--self {
+  margin-right: 2px;
+}
+
+/* 正在行动：标牌也换成淡红，手牌为空时也能看出来 */
+.badge--acting {
+  border-color: rgba(214, 84, 84, 0.55);
+  background: rgba(255, 240, 240, 0.97);
+  box-shadow:
+    0 0 0 2px rgba(214, 84, 84, 0.16),
+    0 1px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 4 人局顶部对手不能压住左右两翼 */
+.table--p4 .zone--top {
+  left: 24%;
+  right: 24%;
+}
+
+.zone__handrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.table--myaction .zone--bottom .zone__handrow {
+  padding-right: 92px;
+}
+
+/* 手牌右侧的固定信息槽：道具增益、行动点、召唤物。
+   宽度固定，新增召唤物时不会把手牌整体挤向左。 */
+.zone__side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 140px;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+/* 道具增益图标：显示在行动点左侧 */
+.zone__buffs {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.zone__backrow {
+  display: flex;
+  gap: 3px;
+  padding: 4px 5px;
+  border-radius: 10px;
+}
+
+.zone__backcol {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+  padding: 4px 3px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.zone__chars {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.zone__chars--col {
+  flex-direction: column;
+  gap: 6px;
+}
+
+.zone__hand {
+  display: flex;
+  flex: 1 1 auto;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  overflow-x: auto;
+  overflow-y: visible;
+  min-width: 0;
+  max-width: 100%;
+  scrollbar-width: none;
+}
+
+.zone__hand::-webkit-scrollbar {
+  display: none;
+}
+
+/* 正在行动的玩家：手牌区域铺一层淡红色 */
+.zone--acting .zone__hand,
+.zone--acting .zone__backrow,
+.zone--acting .zone__backcol {
+  background: rgba(255, 214, 214, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 0 0 2px rgba(224, 96, 96, 0.18);
+}
+
+/* ---------------- 中央出牌框 ---------------- */
+
+.playzone {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 46%;
+  height: 28%;
+  max-width: 620px;
+  max-height: 360px;
+  border: 2px dashed #c9ccd2;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  z-index: 2;
+  background: rgba(250, 250, 251, 0.6);
+}
+
+.table--myaction .playzone {
+  border-color: #1a1a1a;
+  background: rgba(245, 245, 245, 0.9);
+}
+
+.playzone__status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #6b7280;
+}
+
+.playzone__sep {
+  color: #d0d3d8;
+}
+
+.playzone__turn {
+  color: #16181c;
+  font-weight: 600;
+}
+
+/* 多人局的目标分区虚线 */
+.sector {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.playzone__label {
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #9aa0a8;
+}
+
+.table--myaction .playzone__label {
+  color: #16181c;
+}
+
+/* 其他人最近打出的牌：停在中央框里，点击看详情 */
+.lastplay {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 3px 10px 3px 3px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .lastplay:hover {
+    background: rgba(0, 0, 0, 0.045);
+  }
+}
+
+.lastplay__who {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #6b7280;
+}
+
+.lastplay__card {
+  display: block;
+  width: 46px;
+  height: 64px;
+}
+
+/* ---------------- 行动点 ---------------- */
+
+.ap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  min-width: 18px;
+  min-height: 18px;
+  padding: 3px;
+}
+
+.ap--right {
+  justify-content: flex-start;
+}
+
+.ap--left {
+  justify-content: flex-start;
+}
+
+.ap__zero {
+  font-size: 11px;
+  color: #c4c8ce;
+}
+
+.star {
+  display: block;
+}
+
+.cornerap {
+  position: absolute;
+  z-index: 4;
+  max-width: 22%;
+}
+
+.cornerap--left {
+  left: 6px;
+  bottom: 34%;
+}
+
+.cornerap--right {
+  right: 6px;
+  top: 12%;
+}
+
+/* ---------------- 卡牌 ---------------- */
+
+.handcard {
+  position: relative;
+  flex: 0 0 auto;
+  width: 66px;
+  height: 92px;
+  cursor: grab;
+}
+
+/* ---------------- 牌面 ---------------- */
+
+.cardface {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  overflow: hidden;
+  /* 包住整张牌的黑色长方形外框 */
+  border: 2px solid #111;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.14);
+}
+
+.handcard:active {
+  cursor: grabbing;
+}
+
+.handcard--dragging {
+  opacity: 0.35;
+}
+
+/* 插画层：被中间多边形裁切，白边与右上角框保持纯白 */
+.cardface__art {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-color: #f7f7f8;
+  clip-path: polygon(6% 7%, 66% 7%, 66% 34%, 92% 50%, 92% 94%, 6% 94%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 有插画时，牌名压在牌面底部 */
+.cardface__label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 2px 3px 3px;
+  background: rgba(255, 255, 255, 0.88);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.cardface__fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 8px 6px;
+  text-align: center;
+}
+
+.cardface__frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* 右上角行动点星标列 */
+.cardface__stars {
+  position: absolute;
+  left: 75%;
+  top: 7%;
+  width: 18%;
+  /* 下限受右上角框的下斜边限制，再往下最底部一颗会漏出框外 */
+  height: 29%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.cardface__star {
+  height: 23%;
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.handcard__name {
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-align: center;
+  line-height: 1.3;
+  color: #2a2d33;
+}
+
+.cardback {
+  width: 34px;
+  height: 46px;
+  border-radius: 4px;
+  border: 1px solid #cfd2d7;
+  background: repeating-linear-gradient(
+    45deg,
+    #f4f5f7,
+    #f4f5f7 4px,
+    #e8eaee 4px,
+    #e8eaee 8px
+  );
+  flex: 0 0 auto;
+}
+
+.cardback--compact {
+  width: 26px;
+  height: 36px;
+}
+
+.dragghost {
+  position: fixed;
+  z-index: 50;
+  transform: translate(-50%, -50%) rotate(-3deg);
+  width: 66px;
+  height: 92px;
+  pointer-events: none;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.25));
+}
+
+/* ---------------- 角色牌 ---------------- */
+
+.charcard-wrap {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+/* 己方目标：牌面中央的绿色对钩，点击选中该角色 */
+.charcard__check {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  z-index: 5;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #2ea44f;
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28);
+  cursor: pointer;
+  animation: checkpulse 1.1s ease-in-out infinite;
+}
+
+.charcard__check svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.charcard__check:hover {
+  background: #35b85c;
+}
+
+@keyframes checkpulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+/* 角色牌右侧的状态效果图标列 */
+.charfx {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 4px;
+}
+
+.fx {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 3px;
+  background: #fff;
+  border: 1.5px solid currentColor;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+}
+
+/* 层数角标 */
+.fx__stacks {
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  min-width: 10px;
+  padding: 0 2px;
+  border-radius: 3px;
+  background: #111;
+  color: #fff;
+  font-size: 8px;
+  line-height: 10px;
+  text-align: center;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.fx svg {
+  display: block;
+  width: 70%;
+  height: 70%;
+  fill: currentColor;
+}
+
+.fx--buff {
+  color: #2e7d32;
+}
+
+.fx--debuff {
+  color: #b23a2e;
+}
+
+.fx--neutral {
+  color: #6b7280;
+}
+
+.charcard {
+  position: relative;
+  width: 76px;
+  height: 96px;
+  border-radius: 9px;
+  border: 1px solid #d7d9dd;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 17px 7px 10px;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.charcard:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.charcard--compact {
+  width: 62px;
+  height: 76px;
+  gap: 5px;
+  padding: 8px 6px;
+}
+
+.charcard--active {
+  border: 2px solid #111;
+  transform: translateY(-3px);
+}
+
+.charcard--dead {
+  opacity: 0.32;
+  filter: grayscale(1);
+  transform: none;
+}
+
+.charcard__flag {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font-size: 9px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.charcard__name {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: #22252b;
+}
+
+/* 护盾标记，位于角色牌左上角 */
+.charcard__shield {
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 0 2px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1f5c99;
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.charcard__shield svg {
+  width: 10px;
+  height: 10px;
+  fill: currentColor;
+  display: block;
+}
+
+/* 有牌面美术的角色 */
+.charcard__art {
+  position: absolute;
+  inset: 1px;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center 28%;
+  z-index: 0;
+}
+
+.charcard--art {
+  padding: 0;
+  justify-content: flex-end;
+}
+
+.charcard--art .charcard__name {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 4px 2px;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 10px;
+}
+
+.charcard--art .charcard__hp {
+  z-index: 1;
+  padding: 0 3px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.pickcard__art {
+  display: block;
+  width: 100%;
+  height: 64px;
+  border-radius: 6px;
+  background-size: cover;
+  background-position: center 30%;
+  margin-bottom: 6px;
+}
+
+/* 生命值显示在角色牌右上角 */
+.charcard__hp {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  font-size: 9px;
+  color: #5b6068;
+  font-variant-numeric: tabular-nums;
+}
+
+.info__fxlist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.info__fxitem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.info__fxbody {
+  flex: 1;
+}
+
+/* ---------------- 结束行动 ---------------- */
+
+.endbtn {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 30;
+  padding: 11px 18px;
+  border-radius: 8px;
+  border: 1px solid #111;
+  background: #111;
+  color: #fff;
+  font-size: 13px;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+
+.endbtn:active {
+  transform: scale(0.97);
+}
+
+.endbtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ---------------- 场地牌 / 配饰牌 ---------------- */
+
+/* 场地在上，配饰在下，整体放在角色牌左侧 */
+.gears {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.fields {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.fieldcard {
+  position: relative;
+  width: 40px;
+  height: 54px;
+}
+
+.fieldcard--clickable {
+  cursor: pointer;
+}
+
+.fieldcard--clickable:hover .cardface {
+  box-shadow: 0 0 0 2px rgba(31, 92, 153, 0.55);
+}
+
+.fieldcard .cardface {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16);
+}
+
+.fieldcard__name {
+  font-size: 8px;
+  line-height: 1.2;
+  text-align: center;
+  color: #2a2d33;
+  padding: 0 2px;
+}
+
+/* 充能层数：显示在牌面右下角 */
+.fieldcard__charge {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  z-index: 4;
+  min-width: 13px;
+  height: 13px;
+  padding: 0 3px;
+  border-radius: 7px;
+  background: #111;
+  color: #fff;
+  font-size: 9px;
+  line-height: 13px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* 场地待替换时盖在牌面上的红叉 */
+.fieldcard__x {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 2px solid #c0392b;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.6);
+  color: #c0392b;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 700;
+  cursor: pointer;
+  animation: field-x-pulse 1s ease-in-out infinite;
+}
+
+@keyframes field-x-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.bottom__charsrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.top__charsrow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+/* ---------------- 受击动画 ---------------- */
+
+.charcard__hurt {
+  position: absolute;
+  inset: 1px;
+  border-radius: 8px;
+  background: rgba(214, 48, 34, 0.72);
+  z-index: 5;
+  pointer-events: none;
+  animation: hurt-flash 0.6s ease-out forwards;
+}
+
+.charcard__damage {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  color: #c0392b;
+  text-shadow: 0 0 3px #fff, 0 0 6px #fff, 0 1px 0 #fff;
+  animation: damage-float 0.9s ease-out forwards;
+}
+
+/* 治疗 / 护盾飘字：时长与伤害数字一致 */
+.charcard__pop {
+  position: absolute;
+  left: 50%;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 6;
+  text-shadow: 0 0 3px #fff, 0 0 6px #fff, 0 1px 0 #fff;
+  animation: damage-float 0.9s ease-out forwards;
+}
+
+.charcard__pop--heal {
+  top: 26%;
+  color: #2e9e4f;
+}
+
+.charcard__pop--shield {
+  top: 54%;
+  color: #d29b00;
+}
+
+@keyframes hurt-flash {
+  0% {
+    opacity: 0.95;
+  }
+  55% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes damage-float {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 6px) scale(0.8);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -14px) scale(1);
+  }
+}
+
+/* ---------------- 选择角色 ---------------- */
+
+.setup {
+  position: fixed;
+  inset: 0;
+  background: #ffffff;
+  color: #16181c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 16px;
+  overflow-y: auto;
+}
+
+.setup__panel {
+  width: min(100%, 560px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.setup__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-align: center;
+}
+
+.setup__sub {
+  margin: 0;
+  font-size: 12px;
+  text-align: center;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.setup__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.pickcard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 18px 8px;
+  border-radius: 9px;
+  border: 1px solid #d7d9dd;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  color: #16181c;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pickcard:hover:not(:disabled) {
+  border-color: #111;
+}
+
+.pickcard--mine {
+  border: 2px solid #111;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+}
+
+.pickcard--taken {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-style: dashed;
+}
+
+.pickcard__name {
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.pickcard__hp {
+  font-size: 11px;
+  color: #8b919a;
+}
+
+.pickcard__owner {
+  font-size: 10px;
+  color: #9aa0a8;
+}
+
+.pickcard__check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font-size: 9px;
+}
+
+.setup__others {
+  margin: 0;
+  text-align: center;
+  font-size: 11px;
+  color: #9aa0a8;
+  letter-spacing: 0.5px;
+}
+
+/* ---------------- 信息面板 ---------------- */
+
+.info {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(20, 22, 26, 0.35);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.info__panel {
+  width: min(100%, 480px);
+  max-height: 74%;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 14px 14px 0 0;
+  border-top: 2px solid #111;
+  padding: 18px 18px 22px;
+  color: #16181c;
+  animation: slide-up 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.info__preview {
+  width: 112px;
+  height: 156px;
+  margin: 0 auto 16px;
+}
+
+.info__previewname {
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #2a2d33;
+}
+
+.info__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.info__title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+.info__cost {
+  font-size: 12px;
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
+}
+
+.info__owner {
+  margin: 0 0 12px;
+  font-size: 11px;
+  color: #9aa0a8;
+}
+
+.info__desc {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #4b5058;
+}
+
+/* 技能描述里的效果名：下划线，点击展开说明 */
+.info__term {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: #1f5c99;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.info__termbox {
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-left: 3px solid #1f5c99;
+  background: #f4f7fb;
+  border-radius: 0 6px 6px 0;
+}
+
+.info__termname {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f3450;
+}
+
+/* 神厄形态：展开后的技能列表 */
+.info__godbox .info__list {
+  margin-top: 8px;
+  gap: 8px;
+}
+
+.info__termmeta {
+  margin-left: 6px;
+  font-size: 10px;
+  color: #6b7280;
+}
+
+.info__section {
+  margin-top: 14px;
+}
+
+.info__label {
+  margin: 0 0 6px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #9aa0a8;
+  font-weight: 500;
+}
+
+.info__empty {
+  margin: 0;
+  font-size: 12px;
+  color: #b3b8bf;
+}
+
+.info__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.info__skill {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.info__skillcost {
+  margin-left: 8px;
+  font-size: 11px;
+  color: #9aa0a8;
+}
+
+.info__action {
+  width: 100%;
+  margin-top: 18px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #111;
+  background: #111;
+  color: #fff;
+  font-size: 13px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.info__action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.info__actionhint {
+  font-size: 11px;
+  letter-spacing: 0;
+  opacity: 0.75;
+}
+
+.info__close {
+  width: 100%;
+  margin-top: 10px;
+  padding: 11px;
+  border-radius: 8px;
+  border: 1px solid #111;
+  background: #fff;
+  color: #111;
+  font-size: 13px;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+
+/* ---------------- 提示与结算 ---------------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 150px;
+  transform: translateX(-50%);
+  z-index: 70;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: rgba(17, 17, 17, 0.92);
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: fade 0.16s ease both;
+}
+
+.finish {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.finish__panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 28px 24px;
+}
+
+.finish__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 4px;
+}
+
+.finish .menu-btn {
+  color: #16181c;
+  border-color: #111;
+  background: #fff;
+}
+
+.handcard__damage {
+  font-size: 9px;
+  color: #b23a2e;
+  font-variant-numeric: tabular-nums;
+}
+
+.charcard--target {
+  border-color: #b23a2e;
+  box-shadow: 0 0 0 3px rgba(178, 58, 46, 0.15);
+  cursor: crosshair;
+}
+
+.playzone__cancel {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid #d7d9dd;
+  background: #fff;
+  color: #4b5058;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* ---------------- 垃圾桶 ---------------- */
+
+.trashbtn {
+  position: absolute;
+  right: 12px;
+  bottom: 62px;
+  z-index: 30;
+  width: 44px;
+  height: 44px;
+  border-radius: 9px;
+  border: 1px dashed #cfd2d7;
+  background: #fff;
+  color: #5b6068;
+  display: grid;
+  place-items: center;
+}
+
+.trashbtn--active {
+  border-style: solid;
+  border-color: #b23a2e;
+  color: #b23a2e;
+  background: #fff6f5;
+}
+
+/* ---------------- 重新选择前台 ---------------- */
+
+.choose {
+  position: fixed;
+  inset: 0;
+  z-index: 75;
+  background: rgba(20, 22, 26, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.choose__panel {
+  width: min(100%, 420px);
+  background: #fff;
+  border-radius: 14px;
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+}
+
+.choose__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.choose__hint {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.choose__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
+}
+
+.choose__card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 10px;
+  border-radius: 9px;
+  border: 1px solid #d7d9dd;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.choose__card:hover {
+  border-color: #111;
+}
+
+.choose__name {
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.choose__hp {
+  font-size: 11px;
+  color: #8b919a;
+}
+
+/* 关卡机制问号按钮与说明 */
+.mechanicbtn {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 40;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid #111;
+  background: #fff;
+  color: #111;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.mechanicbtn:hover {
+  background: #f2f3f5;
+}
+
+.mechanic__text {
+  white-space: pre-wrap;
+  text-align: left;
+  line-height: 1.8;
+}
+
+@media (max-width: 520px) {
+  /* 结束/弃牌按钮固定在屏幕底部，手牌区整体上移，避免最下一排手牌被按钮压住 */
+  .zone--bottom {
+    padding-bottom: 58px;
+  }
+
+  .charcard {
+    width: 66px;
+    height: 86px;
+  }
+
+  .charcard--compact {
+    width: 54px;
+    height: 68px;
+  }
+
+  .handcard {
+    width: 58px;
+    height: 82px;
+  }
+
+  .playzone {
+    width: 56%;
+    height: 24%;
+  }
+
+  .zone--left,
+  .zone--right {
+    width: 24%;
+  }
+
+  /* 窄屏：行动点等移到手牌上方，手牌换行成两排；垃圾桶挪到左下角，
+     不再占用手牌右侧的宽度，手牌可以铺满整行。 */
+  .table--myaction .zone--bottom .zone__handrow {
+    padding-right: 12px;
+  }
+
+  .zone__handrow {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .zone__side {
+    order: -1;
+    flex: 1 1 100%;
+    justify-content: flex-end;
+  }
+
+  .zone__hand {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+    overflow: visible;
+    /* 底部留出按钮的高度，避免最下一排手牌压在垃圾桶/结束按钮下面 */
+    padding: 4px 4px 10px;
+  }
+
+  .trashbtn {
+    left: 12px;
+    right: auto;
+    bottom: 12px;
+  }
+}
+
+/* ---------------- 卡牌图鉴 ---------------- */
+
+.codex {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #f5f6f8;
+  color: #16181c;
+}
+
+.codex__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #e4e6ea;
+}
+
+.codex__back {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid #d7d9dd;
+  background: #fff;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.codex__title {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: 2px;
+}
+
+.codex__choices {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.codex__choice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 18px;
+  border: 1px solid #d7d9dd;
+  border-radius: 12px;
+  background: #fff;
+  color: #16181c;
+  font-size: 16px;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+.codex__choice:hover {
+  border-color: #111;
+}
+
+.codex__choice span {
+  font-size: 12px;
+  letter-spacing: 0;
+  color: #9aa0a8;
+}
+
+.codex__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.codex__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 14px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.codex__grid--cards {
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+}
+
+.codex__tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid #d7d9dd;
+  border-radius: 10px;
+  background: #fff;
+  color: #16181c;
+  cursor: pointer;
+}
+
+.codex__tile:hover {
+  border-color: #111;
+}
+
+/* 单人模式关卡：沿用图鉴角色牌尺寸/形状，统一黑色外框。
+   2px 黑框 + 7px 内边距，外尺寸与图鉴角色牌（1px 框 + 8px 内边距）一致 */
+.stagecard {
+  border: 2px solid #111;
+  padding: 7px;
+  box-sizing: border-box;
+}
+
+.stagecard:hover {
+  border-color: #111;
+  box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.14);
+}
+
+.codex__art.stagecard__art--blank {
+  background-color: #fff;
+}
+
+.codex__art {
+  display: block;
+  width: 100%;
+  aspect-ratio: 304 / 384;
+  border-radius: 6px;
+  background-color: #eef0f3;
+  background-size: cover;
+  background-position: center 28%;
+}
+
+.codex__name {
+  font-size: 12px;
+}
+
+.codex__meta {
+  font-size: 10px;
+  color: #9aa0a8;
+}
+
+.codex__cardtile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 6px;
+  border: 1px solid #d7d9dd;
+  border-radius: 10px;
+  background: #fff;
+  color: #16181c;
+  cursor: pointer;
+}
+
+.codex__cardtile:hover {
+  border-color: #111;
+}
+
+.codex__cardwrap {
+  display: block;
+  width: 72px;
+  height: 100px;
+}
+
+.codex__cardname {
+  font-size: 9px;
+}
+
+.codex__cardsub {
+  font-size: 10px;
+  color: #6b7280;
+}
+
+/* ---------------- 召唤物 ---------------- */
+
+.zone__summons {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.summon {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 2px solid #111;
+  border-radius: 6px;
+  background: #fff;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.14);
+}
+
+.summon__art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center 20%;
+  background-color: #eef0f3;
+}
+
+.summon__taunt {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  min-width: 13px;
+  padding: 0 2px;
+  border-radius: 3px;
+  background: #111;
+  color: #fff;
+  font-size: 9px;
+  line-height: 13px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}

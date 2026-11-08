@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="12" fill="#f6efe4"/>
+  <!-- 头发 -->
+  <path d="M15 25c0-11 8-17 17-17s17 6 17 17v3c-3-7-9-10-17-10s-14 3-17 10z" fill="#2e2e2e"/>
+  <!-- 脸 -->
+  <path d="M17 21h30v17c0 10-6 15-15 15s-15-5-15-15z" fill="#f6c9a5"/>
+  <!-- 眼镜 -->
+  <circle cx="25.5" cy="33" r="6" fill="none" stroke="#2e2e2e" stroke-width="2"/>
+  <circle cx="38.5" cy="33" r="6" fill="none" stroke="#2e2e2e" stroke-width="2"/>
+  <path d="M31.5 33h1" stroke="#2e2e2e" stroke-width="2"/>
+  <circle cx="25.5" cy="33" r="1.5" fill="#2e2e2e"/>
+  <circle cx="38.5" cy="33" r="1.5" fill="#2e2e2e"/>
+  <!-- 嘴 -->
+  <path d="M28.5 43c2 1.8 5 1.8 7 0" fill="none" stroke="#b5654a" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- 衣领 -->
+  <path d="M18 64v-5c0-7 5-10 14-10s14 3 14 10v5z" fill="#eef2f7"/>
+  <path d="M30 49l2 4 2-4" fill="#d7dde6"/>
+  <!-- 抱拳 -->
+  <ellipse cx="32" cy="58" rx="9" ry="5.5" fill="#f6c9a5" stroke="#dca57c" stroke-width="1.6"/>
+  <path d="M26 57h12" stroke="#dca57c" stroke-width="1.2"/>
+  <path d="M27.5 60.5h9" stroke="#dca57c" stroke-width="1.2"/>
+</svg>
