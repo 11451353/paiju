@@ -1,0 +1,17 @@
+{
+  "name": "Paiju",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+  "remoteEnv": {
+    "PATH": "${containerEnv:HOME}/.bun/bin:${containerEnv:PATH}",
+    "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"
+  },
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "postStartCommand": "bash .devcontainer/start.sh",
+  "forwardPorts": [4173],
+  "portsAttributes": {
+    "4173": {
+      "label": "Paiju",
+      "onAutoForward": "notify"
+    }
+  }
+}
